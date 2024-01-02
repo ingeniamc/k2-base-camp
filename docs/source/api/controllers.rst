@@ -4,13 +4,13 @@ Controllers
 Drive Controller
 ----------------
 
-.. automodule:: controllers.drive_controller
+.. automodule:: k2basecamp.controllers.drive_controller
    :members:
    :show-inheritance:
 
 Bootloader Controller
 ---------------------
 
-.. automodule:: controllers.bootloader_controller
+.. automodule:: k2basecamp.controllers.bootloader_controller
    :members:
    :show-inheritance:

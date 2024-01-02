@@ -4,6 +4,6 @@ Models
 Drive Model
 -----------
 
-.. automodule:: models.drive_model
+.. automodule:: k2basecamp.models.drive_model
    :members:
    :show-inheritance:

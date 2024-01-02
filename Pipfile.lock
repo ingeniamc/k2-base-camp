@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "5de8aa525039b4e0359cffa1a98e2628a845b64a34d4c195e3c27e3e159e1422"
+            "sha256": "7252cd0871d308c9c1aacaeaff48be9a829dcd72dc17c8a936c991a6c09997cd"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -61,10 +61,6 @@
             "index": "pypi",
             "markers": "python_version >= '3.6'",
             "version": "==0.7.0"
-        },
-        "k2-base-camp": {
-            "editable": true,
-            "file": "."
         },
         "numpy": {
             "hashes": [

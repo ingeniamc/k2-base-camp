@@ -7,7 +7,7 @@ from ingenialink.exceptions import ILError, ILIOError
 from ingeniamotion.exceptions import IMException
 from PySide6.QtCore import QThread, Signal
 
-from utils.types import motion_controller_task, thread_report
+from k2basecamp.utils.types import motion_controller_task, thread_report
 
 logger = ingenialogger.get_logger(__name__)
 

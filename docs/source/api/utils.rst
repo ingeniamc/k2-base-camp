@@ -4,13 +4,13 @@ Utils
 Enums
 -----
 
-.. automodule:: utils.enums
+.. automodule:: k2basecamp.utils.enums
    :members:
    :show-inheritance:
 
 Utils
 -----
 
-.. automodule:: utils.types
+.. automodule:: k2basecamp.utils.types
    :members:
    :show-inheritance:

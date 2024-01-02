@@ -7,11 +7,11 @@ from ingeniamotion import MotionController
 from ingeniamotion.enums import OperationMode
 from PySide6.QtCore import QObject, Signal, Slot
 
-from models.drive_model import DriveModel
-from utils.enums import ConnectionProtocol, Drive, stringify_can_device_enum
-from utils.types import motion_controller_task, thread_report
-from services.motion_controller_thread import MotionControllerThread
-from services.poller_thread import PollerThread
+from k2basecamp.models.drive_model import DriveModel
+from k2basecamp.services.motion_controller_thread import MotionControllerThread
+from k2basecamp.services.poller_thread import PollerThread
+from k2basecamp.utils.enums import ConnectionProtocol, Drive, stringify_can_device_enum
+from k2basecamp.utils.types import motion_controller_task, thread_report
 
 DEVICE_NODE = "Body//Device"
 INTERFACE_CAN = "CAN"

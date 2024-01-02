@@ -3,7 +3,7 @@ from typing import Union
 from ingenialink import CAN_BAUDRATE
 from PySide6.QtCore import QObject
 
-from utils.enums import ButtonState, CanDevice, ConnectionProtocol
+from k2basecamp.utils.enums import ButtonState, CanDevice, ConnectionProtocol
 
 
 class DriveModel(QObject):

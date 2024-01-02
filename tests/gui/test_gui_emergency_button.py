@@ -3,14 +3,15 @@ import sys
 from pathlib import Path
 
 import ingenialogger
-from controllers.bootloader_controller import BootloaderController
-from controllers.drive_controller import DriveController
 from PySide6.QtCore import QPointF, Qt
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickItem
 from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
-from services.motion_controller_service import MotionControllerService
+
+from k2basecamp.controllers.bootloader_controller import BootloaderController
+from k2basecamp.controllers.drive_controller import DriveController
+from k2basecamp.services.motion_controller_service import MotionControllerService
 
 
 def test_emergency_button(qtbot: QtBot, mocker: MockerFixture) -> None:
@@ -25,7 +26,7 @@ def test_emergency_button(qtbot: QtBot, mocker: MockerFixture) -> None:
 
     engine = QQmlApplicationEngine()
     qml_file = os.fspath(
-        Path(__file__).resolve().parent.parent.parent / "src/views/main.qml"
+        Path(__file__).resolve().parent.parent.parent / "k2basecamp/views/main.qml"
     )
 
     mcs = MotionControllerService()

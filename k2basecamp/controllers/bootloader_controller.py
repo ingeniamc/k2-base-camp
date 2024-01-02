@@ -5,10 +5,10 @@ from ingenialink import CAN_BAUDRATE
 from PySide6.QtCore import QJsonArray, QObject, Signal, Slot
 from PySide6.QtQml import QmlElement
 
-from models.drive_model import DriveModel
-from services.motion_controller_service import MotionControllerService
-from utils.enums import CanDevice, ConnectionProtocol, Drive
-from utils.types import thread_report
+from k2basecamp.models.drive_model import DriveModel
+from k2basecamp.services.motion_controller_service import MotionControllerService
+from k2basecamp.utils.enums import CanDevice, ConnectionProtocol, Drive
+from k2basecamp.utils.types import thread_report
 
 # To be used on the @QmlElement decorator
 # (QML_IMPORT_MINOR_VERSION is optional)

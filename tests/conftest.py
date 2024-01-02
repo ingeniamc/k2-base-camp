@@ -1,8 +1,9 @@
 from typing import Generator
 
 import pytest
-from controllers.drive_controller import DriveController
-from services.motion_controller_service import MotionControllerService
+
+from k2basecamp.controllers.drive_controller import DriveController
+from k2basecamp.services.motion_controller_service import MotionControllerService
 
 
 @pytest.fixture

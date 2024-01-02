@@ -27,13 +27,6 @@ Running the program::
 Generated code
 ==============
 
-Module
-------
-
-Installing the dependencies will automatically generate the folder *k2_base_camp.egg-info*. 
-This is because k2-base-camp itself is included as a dependency and is necessary for the imports between modules in the source code to work.
-This code generation is based on the files **setup.py**, **setup.cfg**, and **pyproject.toml**.
-
 Style
 -----
 

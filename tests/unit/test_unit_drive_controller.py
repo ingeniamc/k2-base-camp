@@ -1,7 +1,8 @@
-from controllers.drive_controller import DriveController
 from ingenialink import CAN_BAUDRATE
 from PySide6.QtTest import QSignalSpy
-from utils.enums import ButtonState, CanDevice, ConnectionProtocol, Drive
+
+from k2basecamp.controllers.drive_controller import DriveController
+from k2basecamp.utils.enums import ButtonState, CanDevice, ConnectionProtocol, Drive
 
 """Use the various slots (functions) in the DriveController to change the
 application state and confirm that it has been changed as expected.
