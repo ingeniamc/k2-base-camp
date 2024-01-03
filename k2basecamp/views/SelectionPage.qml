@@ -15,10 +15,10 @@ import QtQuick.Dialogs
 
 ColumnLayout {
     id: selectionPage
-    required property DriveController driveController
+    required property ConnectionController connectionController
 
     Connections {
-        target: selectionPage.driveController
+        target: selectionPage.connectionController
         function onDictionary_changed(dictionary) {
             dictionaryFile.text = dictionary;
             resetDictionary.visible = true;
@@ -60,7 +60,7 @@ ColumnLayout {
         fileMode: FileDialog.OpenFile
         nameFilters: ["Dictionary files (*.xdf)"]
         onAccepted: {
-            selectionPage.driveController.select_dictionary(selectedFile);
+            selectionPage.connectionController.select_dictionary(selectedFile);
         }
     }
 
@@ -72,7 +72,7 @@ ColumnLayout {
         fileMode: FileDialog.OpenFile
         nameFilters: ["XCF Files (*.xcf)"]
         onAccepted: {
-            selectionPage.driveController.select_config(selectedFile, Enums.Drive.Left);
+            selectionPage.connectionController.select_config(selectedFile, Enums.Drive.Left);
         }
     }
 
@@ -84,7 +84,7 @@ ColumnLayout {
         fileMode: FileDialog.OpenFile
         nameFilters: ["XCF Files (*.xcf)"]
         onAccepted: {
-            selectionPage.driveController.select_config(selectedFile, Enums.Drive.Right);
+            selectionPage.connectionController.select_config(selectedFile, Enums.Drive.Right);
         }
     }
 
@@ -98,7 +98,7 @@ ColumnLayout {
                 text: "EtherCAT"
             }]
         activatedHandler: currentValue => {
-            selectionPage.driveController.select_connection(currentValue);
+            selectionPage.connectionController.select_connection(currentValue);
             selectCANdevice.visible = currentValue == Enums.ConnectionProtocol.CANopen;
             selectBaudrate.visible = currentValue == Enums.ConnectionProtocol.CANopen;
             selectNetworkAdapter.visible = currentValue == Enums.ConnectionProtocol.EtherCAT;
@@ -106,7 +106,7 @@ ColumnLayout {
             idRightAutomatic.model = [];
             idLeftAutomatic.enabled = false;
             idRightAutomatic.enabled = false;
-            selectionPage.driveController.reset_dictionary();
+            selectionPage.connectionController.reset_dictionary();
             resetDictionary.visible = false;
             dictionaryButton.enabled = true;
         }
@@ -118,7 +118,7 @@ ColumnLayout {
         model: []
         visible: false
         Component.onCompleted: () => {
-            const interface_name_list = selectionPage.driveController.get_interface_name_list();
+            const interface_name_list = selectionPage.connectionController.get_interface_name_list();
             selectNetworkAdapter.model = interface_name_list.map((interface_name, index) => {
                     return {
                         value: index,
@@ -126,7 +126,7 @@ ColumnLayout {
                     };
                 });
         }
-        activatedHandler: currentValue => selectionPage.driveController.select_interface(currentValue)
+        activatedHandler: currentValue => selectionPage.connectionController.select_interface(currentValue)
     }
 
     Components.Selection {
@@ -142,7 +142,7 @@ ColumnLayout {
                 value: Enums.CanDevice.IXXAT,
                 text: "IXXAT"
             }]
-        activatedHandler: currentValue => selectionPage.driveController.select_can_device(currentValue)
+        activatedHandler: currentValue => selectionPage.connectionController.select_can_device(currentValue)
     }
 
     Components.Selection {
@@ -167,7 +167,7 @@ ColumnLayout {
                 value: Enums.CAN_BAUDRATE.Baudrate_50K,
                 text: "50 Kbit/s"
             }]
-        activatedHandler: currentValue => selectionPage.driveController.select_can_baudrate(currentValue)
+        activatedHandler: currentValue => selectionPage.connectionController.select_can_baudrate(currentValue)
     }
 
     RowLayout {
@@ -212,7 +212,7 @@ ColumnLayout {
             Material.foreground: '#FFFFFF'
             hoverColor: '#85ceff'
             onClicked: () => {
-                selectionPage.driveController.scan_servos();
+                selectionPage.connectionController.scan_servos();
             }
         }
         Components.SpacerW {
@@ -238,7 +238,7 @@ ColumnLayout {
             Layout.preferredWidth: 4
             from: 0
             editable: true
-            onValueModified: () => selectionPage.driveController.select_node_id(value, Enums.Drive.Left)
+            onValueModified: () => selectionPage.connectionController.select_node_id(value, Enums.Drive.Left)
         }
         Components.SpacerW {
         }
@@ -255,7 +255,7 @@ ColumnLayout {
             Layout.preferredWidth: 4
             from: 0
             editable: true
-            onValueModified: () => selectionPage.driveController.select_node_id(value, Enums.Drive.Right)
+            onValueModified: () => selectionPage.connectionController.select_node_id(value, Enums.Drive.Right)
         }
         Components.SpacerW {
         }
@@ -283,7 +283,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 2
             Material.foreground: Material.foreground
-            onActivated: () => selectionPage.driveController.select_node_id(currentValue, Enums.Drive.Left)
+            onActivated: () => selectionPage.connectionController.select_node_id(currentValue, Enums.Drive.Left)
         }
         Components.SpacerW {
         }
@@ -303,7 +303,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 2
             Material.foreground: Material.foreground
-            onActivated: () => selectionPage.driveController.select_node_id(currentValue, Enums.Drive.Right)
+            onActivated: () => selectionPage.connectionController.select_node_id(currentValue, Enums.Drive.Right)
         }
         Components.SpacerW {
         }
@@ -334,7 +334,7 @@ ColumnLayout {
                     text: "X"
                     visible: false
                     onClicked: () => {
-                        selectionPage.driveController.reset_config(Enums.Drive.Left);
+                        selectionPage.connectionController.reset_config(Enums.Drive.Left);
                         resetConfigLeft.visible = false;
                         configButtonLeft.enabled = true;
                     }
@@ -362,7 +362,7 @@ ColumnLayout {
                     text: "X"
                     visible: false
                     onClicked: () => {
-                        selectionPage.driveController.reset_config(Enums.Drive.Right);
+                        selectionPage.connectionController.reset_config(Enums.Drive.Right);
                         resetConfigRight.visible = false;
                         configButtonRight.enabled = true;
                     }
@@ -397,7 +397,7 @@ ColumnLayout {
                     text: "X"
                     visible: false
                     onClicked: () => {
-                        selectionPage.driveController.reset_dictionary();
+                        selectionPage.connectionController.reset_dictionary();
                         resetDictionary.visible = false;
                         dictionaryButton.enabled = true;
                     }
@@ -439,7 +439,7 @@ ColumnLayout {
             ]
             onClicked: () => {
                 connectBtn.state = Enums.ButtonState.Disabled;
-                selectionPage.driveController.connect();
+                selectionPage.connectionController.connect();
             }
         }
         Components.SpacerW {

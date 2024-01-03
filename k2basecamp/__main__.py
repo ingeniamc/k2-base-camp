@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QApplication
 # Created with pyside6-rcc using resources.qrc and qtquickcontrols.conf.
 import k2basecamp.resources  # noqa: F401
 from k2basecamp.controllers.bootloader_controller import BootloaderController
-from k2basecamp.controllers.drive_controller import DriveController
+from k2basecamp.controllers.connection_controller import ConnectionController
 from k2basecamp.services.motion_controller_service import MotionControllerService
 
 if __name__ == "__main__":
@@ -36,12 +36,12 @@ if __name__ == "__main__":
 
     # Init the controllers and make them availble to our .qml files.
     mcs = MotionControllerService()
-    drive_controller = DriveController(mcs)
+    connection_controller = ConnectionController(mcs)
     bootloader_controller = BootloaderController(mcs)
     engine.setInitialProperties(
         {
             "bootloaderController": bootloader_controller,
-            "driveController": drive_controller,
+            "connectionController": connection_controller,
         }
     )
 
@@ -51,5 +51,5 @@ if __name__ == "__main__":
 
     # Start the application.
     ret = app.exec()
-    drive_controller.mcs.stop_motion_controller_thread()
+    connection_controller.mcs.stop_motion_controller_thread()
     sys.exit(ret)

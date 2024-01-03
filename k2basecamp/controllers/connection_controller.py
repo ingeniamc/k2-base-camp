@@ -5,7 +5,7 @@ from ingenialink import CAN_BAUDRATE
 from PySide6.QtCore import QJsonArray, QObject, Signal, Slot
 from PySide6.QtQml import QmlElement
 
-from k2basecamp.models.drive_model import DriveModel
+from k2basecamp.models.connection_model import ConnectionModel
 from k2basecamp.services.motion_controller_service import MotionControllerService
 from k2basecamp.utils.enums import CanDevice, ConnectionProtocol, Drive
 from k2basecamp.utils.types import thread_report
@@ -19,7 +19,7 @@ logger = ingenialogger.get_logger(__name__)
 
 
 @QmlElement
-class DriveController(QObject):
+class ConnectionController(QObject):
     """A connection between the buisiness logic (BL) and the user interface (UI).
     Emits signals that the UI can respond to (BL -> UI).
     Defines slots that can then be accessed directly in the UI (UI -> BL).
@@ -93,7 +93,7 @@ class DriveController(QObject):
         super().__init__()
         self.mcs = mcs
         self.mcs.error_triggered.connect(self.error_message_callback)
-        self.drive_model = DriveModel()
+        self.connection_model = ConnectionModel()
 
     @Slot()
     def connect(self) -> None:
@@ -102,7 +102,7 @@ class DriveController(QObject):
         """
         self.mcs.connect_drives(
             self.connect_callback,
-            self.drive_model,
+            self.connection_model,
         )
 
     @Slot()
@@ -183,7 +183,7 @@ class DriveController(QObject):
         """Scan for servos in the network."""
         self.mcs.scan_servos(
             self.scan_servos_callback,
-            self.drive_model,
+            self.connection_model,
         )
 
     @Slot(float, int)
@@ -228,18 +228,18 @@ class DriveController(QObject):
         Args:
             dictionary: the url of the dictionary file
         """
-        self.drive_model.dictionary = dictionary.removeprefix("file:///")
-        self.drive_model.dictionary_type = self.mcs.check_dictionary_format(
-            self.drive_model.dictionary
+        self.connection_model.dictionary = dictionary.removeprefix("file:///")
+        self.connection_model.dictionary_type = self.mcs.check_dictionary_format(
+            self.connection_model.dictionary
         )
-        self.dictionary_changed.emit(os.path.basename(self.drive_model.dictionary))
+        self.dictionary_changed.emit(os.path.basename(self.connection_model.dictionary))
         self.update_connect_button_state()
 
     @Slot()
     def reset_dictionary(self) -> None:
         """Resets the dictionary file in the DriveModel."""
-        self.drive_model.dictionary = None
-        self.drive_model.dictionary_type = None
+        self.connection_model.dictionary = None
+        self.connection_model.dictionary_type = None
         self.dictionary_changed.emit("")
         self.update_connect_button_state()
 
@@ -254,9 +254,9 @@ class DriveController(QObject):
         """
         config = config.removeprefix("file:///")
         if drive == Drive.Left.value:
-            self.drive_model.left_config = config
+            self.connection_model.left_config = config
         else:
-            self.drive_model.right_config = config
+            self.connection_model.right_config = config
         self.config_changed.emit(os.path.basename(config), drive)
 
     @Slot(int)
@@ -267,9 +267,9 @@ class DriveController(QObject):
             drive: the drive.
         """
         if drive == Drive.Left.value:
-            self.drive_model.left_config = None
+            self.connection_model.left_config = None
         else:
-            self.drive_model.right_config = None
+            self.connection_model.right_config = None
         self.config_changed.emit("", drive)
 
     @Slot(int)
@@ -280,7 +280,7 @@ class DriveController(QObject):
         Args:
             connection: the selected connection
         """
-        self.drive_model.connection = ConnectionProtocol(connection)
+        self.connection_model.connection = ConnectionProtocol(connection)
         self.update_connect_button_state()
 
     @Slot(int)
@@ -291,7 +291,7 @@ class DriveController(QObject):
         Args:
             interface: the selected interface
         """
-        self.drive_model.interface_index = interface
+        self.connection_model.interface_index = interface
         self.update_connect_button_state()
 
     @Slot(int)
@@ -302,7 +302,7 @@ class DriveController(QObject):
         Args:
             can_device: the selected can device
         """
-        self.drive_model.can_device = CanDevice(can_device)
+        self.connection_model.can_device = CanDevice(can_device)
         self.update_connect_button_state()
 
     @Slot(int)
@@ -313,7 +313,7 @@ class DriveController(QObject):
         Args:
             can_baudrate: the selected can baudrate
         """
-        self.drive_model.can_baudrate = CAN_BAUDRATE(baudrate)
+        self.connection_model.can_baudrate = CAN_BAUDRATE(baudrate)
         self.update_connect_button_state()
 
     @Slot(int, int)
@@ -326,9 +326,9 @@ class DriveController(QObject):
             drive: the drive the ID belongs to
         """
         if drive == Drive.Left.value:
-            self.drive_model.left_id = node_id
+            self.connection_model.left_id = node_id
         else:
-            self.drive_model.right_id = node_id
+            self.connection_model.right_id = node_id
         self.update_connect_button_state()
 
     @Slot()
@@ -423,8 +423,8 @@ class DriveController(QObject):
         """
         if thread_report.output is not None:
             servo_ids: list[int] = thread_report.output
-            self.drive_model.left_id = servo_ids[0]
-            self.drive_model.right_id = servo_ids[1]
+            self.connection_model.left_id = servo_ids[0]
+            self.connection_model.right_id = servo_ids[1]
             self.servo_ids_changed.emit(QJsonArray.fromVariantList(servo_ids))
             self.update_connect_button_state()
 
@@ -452,5 +452,5 @@ class DriveController(QObject):
         DriveModel and emits a signal to the UI with the resulting state.
         """
         self.connect_button_state_changed.emit(
-            self.drive_model.connect_button_state().value
+            self.connection_model.connect_button_state().value
         )

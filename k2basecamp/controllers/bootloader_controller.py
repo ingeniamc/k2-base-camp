@@ -5,7 +5,7 @@ from ingenialink import CAN_BAUDRATE
 from PySide6.QtCore import QJsonArray, QObject, Signal, Slot
 from PySide6.QtQml import QmlElement
 
-from k2basecamp.models.drive_model import DriveModel
+from k2basecamp.models.bootloader_model import BootloaderModel
 from k2basecamp.services.motion_controller_service import MotionControllerService
 from k2basecamp.utils.enums import CanDevice, ConnectionProtocol, Drive
 from k2basecamp.utils.types import thread_report
@@ -74,7 +74,7 @@ class BootloaderController(QObject):
         super().__init__()
         self.mcs = mcs
         self.mcs.error_triggered.connect(self.error_message_callback)
-        self.drive_model = DriveModel()
+        self.drive_model = BootloaderModel()
 
     @Slot(result=QJsonArray)
     def get_interface_name_list(self) -> QJsonArray:

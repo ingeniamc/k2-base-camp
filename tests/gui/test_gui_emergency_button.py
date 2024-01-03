@@ -10,7 +10,7 @@ from pytest_mock import MockerFixture
 from pytestqt.qtbot import QtBot
 
 from k2basecamp.controllers.bootloader_controller import BootloaderController
-from k2basecamp.controllers.drive_controller import DriveController
+from k2basecamp.controllers.connection_controller import ConnectionController
 from k2basecamp.services.motion_controller_service import MotionControllerService
 
 
@@ -30,14 +30,14 @@ def test_emergency_button(qtbot: QtBot, mocker: MockerFixture) -> None:
     )
 
     mcs = MotionControllerService()
-    drive_controller = DriveController(mcs)
+    connection_controller = ConnectionController(mcs)
     bootloaderController = BootloaderController(mcs)
 
-    spy = mocker.spy(DriveController, "emergency_stop")
+    spy = mocker.spy(ConnectionController, "emergency_stop")
 
     engine.setInitialProperties(
         {
-            "driveController": drive_controller,
+            "connectionController": connection_controller,
             "bootloaderController": bootloaderController,
         }
     )
@@ -59,4 +59,4 @@ def test_emergency_button(qtbot: QtBot, mocker: MockerFixture) -> None:
     qtbot.wait(10)
     assert spy.call_count == 1
 
-    drive_controller.mcs.stop_motion_controller_thread()
+    connection_controller.mcs.stop_motion_controller_thread()

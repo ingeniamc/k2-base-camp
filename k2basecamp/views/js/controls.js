@@ -12,10 +12,10 @@ function handleButtonPressed(button, leftFactor, rightFactor, event) {
         return;
     button.state = Enums.ButtonState.Active;
     if (leftCheck.checked) {
-        grid.driveController.set_velocity(velocitySliderL.value * leftFactor, Enums.Drive.Left);
+        grid.connectionController.set_velocity(velocitySliderL.value * leftFactor, Enums.Drive.Left);
     }
     if (rightCheck.checked) {
-        grid.driveController.set_velocity(velocitySliderR.value * rightFactor, Enums.Drive.Right);
+        grid.connectionController.set_velocity(velocitySliderR.value * rightFactor, Enums.Drive.Right);
     }
 }
 
@@ -29,10 +29,10 @@ function handleButtonReleased(button) {
         return;
     button.state = Enums.ButtonState.Enabled;
     if (leftCheck.checked) {
-        grid.driveController.set_velocity(0, Enums.Drive.Left);
+        grid.connectionController.set_velocity(0, Enums.Drive.Left);
     }
     if (rightCheck.checked) {
-        grid.driveController.set_velocity(0, Enums.Drive.Right);
+        grid.connectionController.set_velocity(0, Enums.Drive.Right);
     }
 }
 

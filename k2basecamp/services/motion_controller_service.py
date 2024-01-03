@@ -7,7 +7,9 @@ from ingeniamotion import MotionController
 from ingeniamotion.enums import OperationMode
 from PySide6.QtCore import QObject, Signal, Slot
 
-from k2basecamp.models.drive_model import DriveModel
+from k2basecamp.models.base_model import BaseModel
+from k2basecamp.models.bootloader_model import BootloaderModel
+from k2basecamp.models.connection_model import ConnectionModel
 from k2basecamp.services.motion_controller_thread import MotionControllerThread
 from k2basecamp.services.poller_thread import PollerThread
 from k2basecamp.utils.enums import ConnectionProtocol, Drive, stringify_can_device_enum
@@ -118,7 +120,7 @@ class MotionControllerService(QObject):
     def connect_drives(
         self,
         report_callback: Callable[[thread_report], Any],
-        drive_model: DriveModel,
+        drive_model: ConnectionModel,
         *args: Any,
         **kwargs: Any,
     ) -> Callable[..., Any]:
@@ -134,7 +136,7 @@ class MotionControllerService(QObject):
         """
 
         def on_thread(
-            drive_model: DriveModel,
+            drive_model: ConnectionModel,
         ) -> Any:
             if not drive_model.dictionary:
                 raise ILError("No dictionary selected.")
@@ -185,7 +187,7 @@ class MotionControllerService(QObject):
     def scan_servos(
         self,
         report_callback: Callable[[thread_report], Any],
-        drive_model: DriveModel,
+        drive_model: BaseModel,
         minimum_nodes: int = 2,
         *args: Any,
         **kwargs: Any,
@@ -208,7 +210,7 @@ class MotionControllerService(QObject):
             list[int]: All slave / node IDs that are found.
         """
 
-        def on_thread(drive_model: DriveModel, minimum_nodes: int = 2) -> list[int]:
+        def on_thread(drive_model: BaseModel, minimum_nodes: int = 2) -> list[int]:
             if drive_model.connection == ConnectionProtocol.CANopen:
                 result = self.__mc.communication.scan_servos_canopen(
                     can_device=stringify_can_device_enum(drive_model.can_device),
@@ -385,7 +387,7 @@ class MotionControllerService(QObject):
         self,
         report_callback: Callable[[thread_report], Any],
         progress_callback: Callable[[int], None],
-        drive_model: DriveModel,
+        drive_model: BootloaderModel,
         *args: Any,
         **kwargs: Any,
     ) -> Callable[..., Any]:
@@ -404,7 +406,7 @@ class MotionControllerService(QObject):
         """
 
         def on_thread(
-            progress_callback: Callable[[int], None], drive_model: DriveModel
+            progress_callback: Callable[[int], None], drive_model: BootloaderModel
         ) -> Any:
             if not drive_model.install_prerequisites_met():
                 raise ILError(

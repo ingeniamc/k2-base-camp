@@ -1,9 +1,11 @@
 {
     "files": [
         "k2basecamp/__main__.py",
-        "k2basecamp/controllers/drive_controller.py",
+        "k2basecamp/controllers/connection_controller.py",
         "k2basecamp/controllers/bootloader_controller.py",
-        "k2basecamp/models/drive_model.py",
+        "k2basecamp/models/base_model.py",
+        "k2basecamp/models/bootloader_model.py",
+        "k2basecamp/models/connection_model.py",
         "k2basecamp/services/motion_controller_service.py",
         "k2basecamp/services/motion_controller_thread.py",
         "k2basecamp/services/poller_thread.py",

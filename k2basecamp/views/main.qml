@@ -11,12 +11,12 @@ ApplicationWindow {
     width: 800
     height: 600
     visible: true
-    required property DriveController driveController
+    required property ConnectionController connectionController
     required property BootloaderController bootloaderController
 
     Connections {
         // Receive signals coming from the controllers.
-        target: page.driveController
+        target: page.connectionController
         function onDrive_connected_triggered() {
             stack.push(controlsPage);
         }
@@ -31,7 +31,7 @@ ApplicationWindow {
         sequence: "F12"
         context: Qt.ApplicationShortcut
         autoRepeat: false
-        onActivated: () => page.driveController.emergency_stop()
+        onActivated: () => page.connectionController.emergency_stop()
     }
 
     Dialog {
@@ -67,7 +67,7 @@ ApplicationWindow {
                     elide: Text.ElideRight
                 }
                 onClicked: () => {
-                    page.driveController.disconnect()
+                    page.connectionController.disconnect()
                     stack.pop()
                 }
                 Layout.preferredWidth: 3
@@ -160,7 +160,7 @@ ApplicationWindow {
                 Material.background: '#b5341b'
                 Material.foreground: '#ffffff'
                 hoverColor: '#efa496'
-                onClicked: () => page.driveController.emergency_stop()
+                onClicked: () => page.connectionController.emergency_stop()
             }
         }
     }
@@ -188,13 +188,13 @@ ApplicationWindow {
         // The main page is an interface to establish the connection with the drives.
         id: selectionPage
         visible: false
-        driveController: page.driveController
+        connectionController: page.connectionController
     }
 
     ControlsPage {
         // The last page is an interface that allows manipulating the velocity of the connected motors.
         id: controlsPage
         visible: false
-        driveController: page.driveController
+        connectionController: page.connectionController
     }
 }

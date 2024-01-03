@@ -18,19 +18,19 @@ The objective of this example is changing the value of a register of the drive u
         SpinBox {
             (component properties)
             onValueModified: () => {
-                grid.driveController.set_register_max_velocity(value, Enums.Drive.Left);
+                grid.connectionController.set_register_max_velocity(value, Enums.Drive.Left);
             }
         }
 
-    As we can see, the box defines a handler that triggers when the value changes. We use it to call a function of ``driveController``.
-    However, in order for this to work, we need the ``driveController`` to be accessible in the frontend.
+    As we can see, the box defines a handler that triggers when the value changes. We use it to call a function of ``connectionController``.
+    However, in order for this to work, we need the ``connectionController`` to be accessible in the frontend.
 
-#.  Add the ``driveController`` as a property in our **main.qml**::
+#.  Add the ``connectionController`` as a property in our **main.qml**::
 
         ApplicationWindow {
             id: page
             title: qsTr("K2 Base Camp")
-            required property DriveController driveController
+            required property ConnectionController connectionController
             ...        
         }
 
@@ -40,24 +40,24 @@ The objective of this example is changing the value of a register of the drive u
         qml_file = os.fspath(Path(__file__).resolve().parent / "views/main.qml")
         engine = QQmlApplicationEngine()
 
-        drive_controller = DriveController()
-        engine.setInitialProperties({"driveController": drive_controller})
+        drive_controller = ConnectionController()
+        engine.setInitialProperties({"connectionController": drive_controller})
 
         engine.load(qml_file)
         ...
 
-#.  If the ``SpinBox`` is a direct child component of **main.qml**, we can continue with the next step. However, since we have separated our code over several pages, we need to pass the ``driveController`` to the ``ControlsPage``, which holds the ``SpinBox``::
+#.  If the ``SpinBox`` is a direct child component of **main.qml**, we can continue with the next step. However, since we have separated our code over several pages, we need to pass the ``connectionController`` to the ``ControlsPage``, which holds the ``SpinBox``::
 
         ApplicationWindow {
             ...
 
             ControlsPage {
                 id: controlsPage
-                driveController: page.driveController
+                connectionController: page.connectionController
             }
         }
 
-#.  Now we can implement the function in the ``DriveController``::
+#.  Now we can implement the function in the ``ConnectionController``::
 
         @Slot(float, int)
         def set_register_max_velocity(self, max_velocity: float, drive: int) -> None:
@@ -99,14 +99,14 @@ We will assume that the ``controller`` we want to use is already connected to QM
             text: qsTr("Enable motor")
             onToggled: () => {
                 if (motorEnable.checked) {
-                    grid.driveController.enable_motor(Enums.Drive.Left);
+                    grid.connectionController.enable_motor(Enums.Drive.Left);
                 } else {
                     ...
                 }
             }
         }
 
-#.  In the ``driveController``, define the corresponding function::
+#.  In the ``connectionController``, define the corresponding function::
 
         @Slot(int)
         def enable_motor(self, drive: int) -> None:
@@ -144,7 +144,7 @@ Polling
 =======
 
 Since we just enabled a motor, we might want to continuosly monitor one of the drives registers (in this case the current motor velocity).
-Looking at the previous example, we might notice that the ``driveController`` indicated a callback function to be executed when the ``MotionControllerThread`` finished its task.
+Looking at the previous example, we might notice that the ``connectionController`` indicated a callback function to be executed when the ``MotionControllerThread`` finished its task.
 
 #.  Let's use this callback function to start an instance of ``PollerThread`` to carry out the monitoring task::
 
@@ -163,7 +163,7 @@ Looking at the previous example, we might notice that the ``driveController`` in
                 self.handle_new_velocity_data_l
             )
 
-#.  ``PollerThread`` defines a ``signal`` (``new_data_available_triggered``) which will emit when it receives new data from the drive. With the code above, we connect this ``signal`` to a function defined in ``DriveController``::
+#.  ``PollerThread`` defines a ``signal`` (``new_data_available_triggered``) which will emit when it receives new data from the drive. With the code above, we connect this ``signal`` to a function defined in ``ConnectionController``::
 
         @Slot()
         def handle_new_velocity_data_l(
@@ -171,23 +171,23 @@ Looking at the previous example, we might notice that the ``driveController`` in
         ) -> None:
             self.velocity_left_changed.emit(timestamps[0], data[0][0])
 
-    The function by itself does not do too much (it refactors the incoming data), but crucially it triggers the ``velocity_left_changed`` ``signal`` (also defined in ``DriveController``) to emit the data that was received (Drive -> ``PollerThread`` -> ``DriveController``).
+    The function by itself does not do too much (it refactors the incoming data), but crucially it triggers the ``velocity_left_changed`` ``signal`` (also defined in ``ConnectionController``) to emit the data that was received (Drive -> ``PollerThread`` -> ``ConnectionController``).
 
 #.  ``Signals`` coming from a ``controller`` can be received in the GUI, which allows us to plot the data there::
 
         RowLayout {
             id: grid
-            required property DriveController driveController
+            required property ConnectionController connectionController
 
             Connections {
-                target: grid.driveController
+                target: grid.connectionController
                 function onVelocity_left_changed(timestamp, velocity) {
                     PlotJS.updatePlot(chartL, timestamp, velocity);
                 }
                 (more signal handlers..)
         }
     
-    The ``driveController`` property is the same as outlined in the first example. 
+    The ``connectionController`` property is the same as outlined in the first example. 
     The important part to look at here is the `Connections - component <https://doc.qt.io/qt-6/qml-qtqml-connections.html>`_.
     It defines a target to connect to - this is where ``signals`` are coming from.
     It then defines handlers that will trigger when a specific ``signal`` is emitted.

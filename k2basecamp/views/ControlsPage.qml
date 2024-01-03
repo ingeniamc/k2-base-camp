@@ -18,10 +18,10 @@ import "js/controls.js" as ControlsJS
 RowLayout {
     id: grid
     signal cancelButtonPressed
-    required property DriveController driveController
+    required property ConnectionController connectionController
 
     Connections {
-        target: grid.driveController
+        target: grid.connectionController
         function onVelocity_left_changed(timestamp, velocity) {
             PlotJS.updatePlot(chartL, timestamp, velocity);
         }
@@ -83,9 +83,9 @@ RowLayout {
                     PlotJS.resetPlot(chartL);
                     PlotJS.initSeries(chartL, xAxisL, yAxisL, "Left");
                     if (leftCheck.checked) {
-                        grid.driveController.enable_motor(Enums.Drive.Left);
+                        grid.connectionController.enable_motor(Enums.Drive.Left);
                     } else {
-                        grid.driveController.disable_motor(Enums.Drive.Left);
+                        grid.connectionController.disable_motor(Enums.Drive.Left);
                     }
                     ControlsJS.updateKeyState();
                 }
@@ -97,9 +97,9 @@ RowLayout {
                     PlotJS.resetPlot(chartR);
                     PlotJS.initSeries(chartR, xAxisR, yAxisR, "Right");
                     if (rightCheck.checked) {
-                        grid.driveController.enable_motor(Enums.Drive.Right);
+                        grid.connectionController.enable_motor(Enums.Drive.Right);
                     } else {
-                        grid.driveController.disable_motor(Enums.Drive.Right);
+                        grid.connectionController.disable_motor(Enums.Drive.Right);
                     }
                     ControlsJS.updateKeyState();
                 }
@@ -197,7 +197,7 @@ RowLayout {
                     value: 10
                     editable: true
                     onValueModified: () => {
-                        grid.driveController.set_register_max_velocity(value, Enums.Drive.Left);
+                        grid.connectionController.set_register_max_velocity(value, Enums.Drive.Left);
                     }
                 }
             }
@@ -258,7 +258,7 @@ RowLayout {
                     value: 10
                     editable: true
                     onValueModified: () => {
-                        grid.driveController.set_register_max_velocity(value, Enums.Drive.Right);
+                        grid.connectionController.set_register_max_velocity(value, Enums.Drive.Right);
                     }
                 }
             }
