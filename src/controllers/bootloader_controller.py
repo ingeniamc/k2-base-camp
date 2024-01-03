@@ -2,9 +2,10 @@ import os
 
 import ingenialogger
 from ingenialink import CAN_BAUDRATE
-from models.drive_model import DriveModel
 from PySide6.QtCore import QJsonArray, QObject, Signal, Slot
 from PySide6.QtQml import QmlElement
+
+from models.drive_model import DriveModel
 from services.motion_controller_service import MotionControllerService
 from utils.enums import CanDevice, ConnectionProtocol, Drive
 from utils.types import thread_report

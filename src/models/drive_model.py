@@ -23,6 +23,8 @@ class DriveModel(QObject):
         dictionary_type: Union[ConnectionProtocol, None] = None,
         left_firmware: Union[str, None] = None,
         right_firmware: Union[str, None] = None,
+        left_config: Union[str, None] = None,
+        right_config: Union[str, None] = None,
     ) -> None:
         super().__init__()
         self.connection = connection
@@ -35,6 +37,8 @@ class DriveModel(QObject):
         self.dictionary_type = dictionary_type
         self.left_firmware = left_firmware
         self.right_firmware = right_firmware
+        self.left_config = left_config
+        self.right_config = right_config
 
     def connect_button_state(self) -> ButtonState:
         """Calculate the state the "Connect"-button should be in based on the

@@ -21,6 +21,8 @@ ColumnLayout {
         target: selectionPage.driveController
         function onDictionary_changed(dictionary) {
             dictionaryFile.text = dictionary;
+            resetDictionary.visible = true;
+            dictionaryButton.enabled = false;
         }
         function onConnect_button_state_changed(new_state) {
             connectBtn.state = new_state;
@@ -37,6 +39,17 @@ ColumnLayout {
             idRightAutomatic.enabled = true;
             idsAutomatic.visible = true;
         }
+        function onConfig_changed(config, drive) {
+            if (drive === Enums.Drive.Left) {
+                configFileLeft.text = config;
+                resetConfigLeft.visible = true;
+                configButtonLeft.enabled = false;
+            } else {
+                configFileRight.text = config;
+                resetConfigRight.visible = true;
+                configButtonRight.enabled = false;
+            }
+        }
     }
 
     FileDialog {
@@ -48,6 +61,30 @@ ColumnLayout {
         nameFilters: ["Dictionary files (*.xdf)"]
         onAccepted: {
             selectionPage.driveController.select_dictionary(selectedFile);
+        }
+    }
+
+    FileDialog {
+        // Input for config file (left drive).
+        id: configfileLeftDialog
+        title: "Please choose a file"
+        defaultSuffix: "lfu"
+        fileMode: FileDialog.OpenFile
+        nameFilters: ["XCF Files (*.xcf)"]
+        onAccepted: {
+            selectionPage.driveController.select_config(selectedFile, Enums.Drive.Left);
+        }
+    }
+
+    FileDialog {
+        // Input for config file (right drive).
+        id: configfileRightDialog
+        title: "Please choose a file"
+        defaultSuffix: "lfu"
+        fileMode: FileDialog.OpenFile
+        nameFilters: ["XCF Files (*.xcf)"]
+        onAccepted: {
+            selectionPage.driveController.select_config(selectedFile, Enums.Drive.Right);
         }
     }
 
@@ -69,6 +106,9 @@ ColumnLayout {
             idRightAutomatic.model = [];
             idLeftAutomatic.enabled = false;
             idRightAutomatic.enabled = false;
+            selectionPage.driveController.reset_dictionary();
+            resetDictionary.visible = false;
+            dictionaryButton.enabled = true;
         }
     }
 
@@ -270,6 +310,70 @@ ColumnLayout {
     }
 
     RowLayout {
+        // Button for config file upload & display of currently selected file,
+        // as well as a button to clear the config file.
+        Components.SpacerW {
+        }
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 2
+            
+            Components.Button {
+                id: configButtonLeft
+                text: "(Optional) Choose config left..."
+                onClicked: configfileLeftDialog.open()
+            }
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                Text {
+                    id: configFileLeft
+                    color: '#e0e0e0'
+                }
+                RoundButton {
+                    id: resetConfigLeft
+                    text: "X"
+                    visible: false
+                    onClicked: () => {
+                        selectionPage.driveController.reset_config(Enums.Drive.Left);
+                        resetConfigLeft.visible = false;
+                        configButtonLeft.enabled = true;
+                    }
+                }
+            }
+        }
+        Components.SpacerW {
+        }
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 2
+            Components.Button {
+                id: configButtonRight
+                text: "(Optional) Choose config right..."
+                onClicked: configfileRightDialog.open()
+            }
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                Text {
+                    id: configFileRight
+                    color: '#e0e0e0'
+                }
+                RoundButton {
+                    id: resetConfigRight
+                    text: "X"
+                    visible: false
+                    onClicked: () => {
+                        selectionPage.driveController.reset_config(Enums.Drive.Right);
+                        resetConfigRight.visible = false;
+                        configButtonRight.enabled = true;
+                    }
+                }
+            }
+        }
+        Components.SpacerW {
+        }
+    }
+
+    RowLayout {
         // Button for dictionary file upload & display of currently selected file.
         Components.SpacerW {
         }
@@ -277,13 +381,27 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 2
             Components.Button {
+                id: dictionaryButton
                 text: "Choose dictionary file..."
                 onClicked: fileDialog.open()
             }
-            Text {
-                id: dictionaryFile
-                color: '#e0e0e0'
+            RowLayout {
                 Layout.alignment: Qt.AlignHCenter
+                Text {
+                    id: dictionaryFile
+                    color: '#e0e0e0'
+                    Layout.alignment: Qt.AlignHCenter
+                }
+                RoundButton {
+                    id: resetDictionary
+                    text: "X"
+                    visible: false
+                    onClicked: () => {
+                        selectionPage.driveController.reset_dictionary();
+                        resetDictionary.visible = false;
+                        dictionaryButton.enabled = true;
+                    }
+                }
             }
         }
         Components.SpacerW {

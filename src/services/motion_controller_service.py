@@ -143,9 +143,9 @@ class MotionControllerService(QObject):
                 raise ILError("Communication type does not match the dictionary type.")
             if drive_model.left_id == drive_model.right_id:
                 raise ILError("Node IDs cannot be the same.")
-            for drive, id in [
-                (Drive.Left.name, drive_model.left_id),
-                (Drive.Right.name, drive_model.right_id),
+            for drive, id, config in [
+                (Drive.Left.name, drive_model.left_id, drive_model.left_config),
+                (Drive.Right.name, drive_model.right_id, drive_model.right_config),
             ]:
                 if id is None:
                     continue
@@ -166,6 +166,10 @@ class MotionControllerService(QObject):
                     )
                 else:
                     raise ILError("Connection type not implemented.")
+                if config is not None:
+                    self.__mc.configuration.load_configuration(
+                        config_path=config, servo=drive
+                    )
 
         return on_thread
 
