@@ -14,12 +14,19 @@ ApplicationWindow {
     required property ConnectionController connectionController
     required property BootloaderController bootloaderController
 
+    // Receive signals coming from the controllers.
     Connections {
-        // Receive signals coming from the controllers.
         target: page.connectionController
         function onDrive_connected_triggered() {
             stack.push(controlsPage);
         }
+        function onError_triggered(error_message) {
+            errorMessageDialogLabel.text = error_message;
+            errorMessageDialog.open();
+        }
+    }
+    Connections {
+        target: page.bootloaderController
         function onError_triggered(error_message) {
             errorMessageDialogLabel.text = error_message;
             errorMessageDialog.open();

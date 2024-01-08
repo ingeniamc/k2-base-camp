@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 import ingenialogger
 from ingenialink import CAN_BAUDRATE
@@ -63,18 +64,34 @@ class BootloaderController(QObject):
     firmware_installation_complete_triggered = Signal()
     """Triggers when the installation of firmware files was completed successfully."""
 
-    firmware_installation_progress_changed = Signal(int, arguments=["progress"])
+    firmware_left_installation_progress_changed = Signal(int, arguments=["progress"])
     """During installation, information about the progress of the operation is emitted.
 
     Args:
         progress (int): The progress as a percentage.
     """
 
+    firmware_right_installation_progress_changed = Signal(int, arguments=["progress"])
+    """During installation, information about the progress of the operation is emitted.
+
+    Args:
+        progress (int): The progress as a percentage.
+    """
+
+    firmware_installation_started = Signal(QJsonArray, arguments=["drives"])
+    """Triggers when the installation of firmware begins.
+
+    Args:
+        drives (PySide6.QtCore.QJsonArray): The drives to be updated.
+    """
+
     def __init__(self, mcs: MotionControllerService) -> None:
         super().__init__()
         self.mcs = mcs
         self.mcs.error_triggered.connect(self.error_message_callback)
-        self.drive_model = BootloaderModel()
+        self.bootloader_model = BootloaderModel()
+        self.drives_in_progress: list[int] = []
+        self.errors: list[str] = []
 
     @Slot(result=QJsonArray)
     def get_interface_name_list(self) -> QJsonArray:
@@ -89,7 +106,7 @@ class BootloaderController(QObject):
     def scan_servos(self) -> None:
         """Scan for servos in the network."""
         self.mcs.scan_servos(
-            self.scan_servos_callback, self.drive_model, minimum_nodes=1
+            self.scan_servos_callback, self.bootloader_model, minimum_nodes=1
         )
 
     @Slot(str, int)
@@ -103,9 +120,9 @@ class BootloaderController(QObject):
         """
         firmware_path = firmware.removeprefix("file:///")
         if drive == Drive.Left.value:
-            self.drive_model.left_firmware = firmware_path
+            self.bootloader_model.left_firmware = firmware_path
         else:
-            self.drive_model.right_firmware = firmware_path
+            self.bootloader_model.right_firmware = firmware_path
         self.firmware_changed.emit(os.path.basename(firmware_path), drive)
         self.update_install_button_state()
 
@@ -119,9 +136,9 @@ class BootloaderController(QObject):
             drive: the drive.
         """
         if drive == Drive.Left.value:
-            self.drive_model.left_firmware = None
+            self.bootloader_model.left_firmware = None
         else:
-            self.drive_model.right_firmware = None
+            self.bootloader_model.right_firmware = None
         self.firmware_changed.emit("", drive)
         self.update_install_button_state()
 
@@ -132,22 +149,81 @@ class BootloaderController(QObject):
         drive.
         If the installation process provides a progress report, it will be handled by
         the install_firmware_progress_callback - function.
+        Depending on the connection protocol, the installation has to be done
+        sequentially (one drive after the other) or can be done in parallel.
         """
-        self.mcs.install_firmware(
-            self.install_firmware_callback,
-            self.install_firmware_progress_callback,
-            self.drive_model,
+        if self.bootloader_model.connection == ConnectionProtocol.EtherCAT:
+            self.install_firmware_sequential()
+        elif self.bootloader_model.connection == ConnectionProtocol.CANopen:
+            self.install_firmware_parallel()
+        else:
+            return
+        self.firmware_installation_started.emit(
+            QJsonArray.fromVariantList(self.drives_in_progress)
         )
 
-    def install_firmware_progress_callback(self, progress: int) -> None:
-        """During firmware installation information about the progress of the process is
-        emitted. This function takes this information and passes it to a signal that can
-        be consumed in the UI.
+    def install_firmware_sequential(self) -> None:
+        """Install firmware to the drives, one after the other."""
+        if self.bootloader_model.left_firmware and self.bootloader_model.left_id:
+            self.drives_in_progress.append(Drive.Left.value)
+            self.mcs.install_firmware_sequential(
+                self.install_firmware_callback,
+                self.firmware_left_installation_progress_changed,
+                Drive.Left,
+                self.bootloader_model,
+                self.bootloader_model.left_firmware,
+                self.bootloader_model.left_id,
+            )
+        if self.bootloader_model.right_firmware and self.bootloader_model.right_id:
+            self.drives_in_progress.append(Drive.Right.value)
+            self.mcs.install_firmware_sequential(
+                self.install_firmware_callback,
+                self.firmware_right_installation_progress_changed,
+                Drive.Right,
+                self.bootloader_model,
+                self.bootloader_model.right_firmware,
+                self.bootloader_model.right_id,
+            )
 
-        Args:
-            progress: the progress of the installation, as a percentage.
-        """
-        self.firmware_installation_progress_changed.emit(progress)
+    def install_firmware_parallel(self) -> None:
+        """Install firmware to the drives in parallel.
+        Spawns a thread for each drive."""
+        if self.bootloader_model.left_firmware and self.bootloader_model.left_id:
+            self.drives_in_progress.append(Drive.Left.value)
+            self.bootloader_thread_left = self.mcs.create_bootloader_thread(
+                bootloader_model=self.bootloader_model,
+                drive=Drive.Left,
+                firmware=self.bootloader_model.left_firmware,
+                id=self.bootloader_model.left_id,
+            )
+            self.bootloader_thread_left.firmware_installation_progress_changed.connect(
+                self.firmware_left_installation_progress_changed
+            )
+            self.bootloader_thread_left.firmware_installation_complete_triggered.connect(
+                self.install_firmware_callback
+            )
+            self.bootloader_thread_left.error_triggered.connect(
+                self.error_message_callback
+            )
+            self.bootloader_thread_left.start()
+        if self.bootloader_model.right_firmware and self.bootloader_model.right_id:
+            self.drives_in_progress.append(Drive.Right.value)
+            self.bootloader_thread_right = self.mcs.create_bootloader_thread(
+                bootloader_model=self.bootloader_model,
+                drive=Drive.Right,
+                firmware=self.bootloader_model.right_firmware,
+                id=self.bootloader_model.right_id,
+            )
+            self.bootloader_thread_right.firmware_installation_progress_changed.connect(
+                self.firmware_right_installation_progress_changed
+            )
+            self.bootloader_thread_right.firmware_installation_complete_triggered.connect(
+                self.install_firmware_callback
+            )
+            self.bootloader_thread_right.error_triggered.connect(
+                self.error_message_callback
+            )
+            self.bootloader_thread_right.start()
 
     @Slot(int)
     def select_connection(self, connection: int) -> None:
@@ -157,7 +233,7 @@ class BootloaderController(QObject):
         Args:
             connection: the selected connection.
         """
-        self.drive_model.connection = ConnectionProtocol(connection)
+        self.bootloader_model.connection = ConnectionProtocol(connection)
         self.update_install_button_state()
 
     @Slot(int)
@@ -168,7 +244,7 @@ class BootloaderController(QObject):
         Args:
             interface: the selected interface.
         """
-        self.drive_model.interface_index = interface
+        self.bootloader_model.interface_index = interface
         self.update_install_button_state()
 
     @Slot(int)
@@ -179,7 +255,7 @@ class BootloaderController(QObject):
         Args:
             can_device: the selected can device.
         """
-        self.drive_model.can_device = CanDevice(can_device)
+        self.bootloader_model.can_device = CanDevice(can_device)
         self.update_install_button_state()
 
     @Slot(int)
@@ -190,7 +266,7 @@ class BootloaderController(QObject):
         Args:
             can_baudrate: the selected can baudrate.
         """
-        self.drive_model.can_baudrate = CAN_BAUDRATE(baudrate)
+        self.bootloader_model.can_baudrate = CAN_BAUDRATE(baudrate)
         self.update_install_button_state()
 
     @Slot(int, int)
@@ -203,9 +279,9 @@ class BootloaderController(QObject):
             drive: the drive the ID belongs to.
         """
         if drive == Drive.Left.value:
-            self.drive_model.left_id = node_id
+            self.bootloader_model.left_id = node_id
         else:
-            self.drive_model.right_id = node_id
+            self.bootloader_model.right_id = node_id
         self.update_install_button_state()
 
     def scan_servos_callback(self, thread_report: thread_report) -> None:
@@ -218,34 +294,53 @@ class BootloaderController(QObject):
         """
         if thread_report.output is not None:
             servo_ids: list[int] = thread_report.output
-            self.drive_model.left_id = servo_ids[0]
+            self.bootloader_model.left_id = servo_ids[0]
             if len(servo_ids) > 1:
-                self.drive_model.right_id = servo_ids[1]
+                self.bootloader_model.right_id = servo_ids[1]
             self.servo_ids_changed.emit(QJsonArray.fromVariantList(servo_ids))
             self.update_install_button_state()
 
     def error_message_callback(self, error_message: str) -> None:
         """Callback when an error occured in a MotionControllerThread.
         Emits a signal to the UI that contains the error message.
+        If the installation is still in progress (e.g. when two drives are being updated
+        in parallel), the error will be emmitted in the install_firmware_callback
+        function instead.
 
         Args:
             error_message: the error message.
         """
-        self.error_triggered.emit(error_message)
+        self.errors.append(error_message)
+        if len(self.drives_in_progress) > 0:
+            self.drives_in_progress.pop()
+        if len(self.drives_in_progress) == 0:
+            self.error_triggered.emit("\n".join(self.errors))
+            self.errors = []
 
-    def install_firmware_callback(self, thread_report: thread_report) -> None:
-        """Callback when firmware was installed successfully to one or more drives.
+    @Slot()
+    def install_firmware_callback(
+        self, thread_report: Union[thread_report, None] = None
+    ) -> None:
+        """Checks if the installation has completed for both drives. If that's the case,
+        emits a signal to notify the GUI that the installation has concluded and - if
+        any error ocurred - another signal with all the errors that occurred in the
+        process.
 
         Args:
             thread_report: the result of the operation that triggered
-                the callback.
+                the callback. Defaults to None.
         """
-        self.firmware_installation_complete_triggered.emit()
+        self.drives_in_progress.pop()
+        if len(self.drives_in_progress) == 0:
+            self.firmware_installation_complete_triggered.emit()
+            if len(self.errors) > 0:
+                self.error_triggered.emit("\n".join(self.errors))
+                self.errors = []
 
     def update_install_button_state(self) -> None:
         """Helper function that calculates the state of the install button using the
         DriveModel and emits a signal to the UI with the resulting state.
         """
         self.install_button_state_changed.emit(
-            self.drive_model.install_button_state().value
+            self.bootloader_model.install_button_state().value
         )

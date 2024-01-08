@@ -1,10 +1,10 @@
 Controllers
 ===========
 
-Drive Controller
-----------------
+Connection Controller
+---------------------
 
-.. automodule:: k2basecamp.controllers.drive_controller
+.. automodule:: k2basecamp.controllers.connection_controller
    :members:
    :show-inheritance:
 

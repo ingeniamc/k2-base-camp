@@ -6,7 +6,7 @@ import qmltypes.controllers 1.0
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Dialogs
-
+import "js/bootloader.js" as BootloaderJS
 // QEnum() does not seem to work properly with qmllint,
 // which is why we disable this warning for this file.
 // This only applies to the usage of Enums, if that is
@@ -20,53 +20,31 @@ ColumnLayout {
     Connections {
         target: bootloaderPage.bootloaderController
         function onFirmware_changed(firmware, drive) {
-            if (drive === Enums.Drive.Left) {
-                firmwareFileLeft.text = firmware;
-                resetFirmwareLeft.visible = true;
-                firmwareButtonLeft.enabled = false;
-            } else {
-                firmwareFileRight.text = firmware;
-                resetFirmwareRight.visible = true;
-                firmwareButtonRight.enabled = false;
-            }
+            BootloaderJS.setFirmware(firmware, drive);
         }
         function onInstall_button_state_changed(new_state) {
             installBtn.state = new_state;
         }
-        function onServo_ids_changed(servo_ids) {
-            const servo_ids_model = servo_ids.map((servo_id) => { return {
-                value: servo_id,
-                text: servo_id
-            }});
-            idLeftAutomatic.model = servo_ids_model;
-            idLeftAutomatic.enabled = true;
-            // Handle if the scan returned only one servo
-            if (servo_ids_model.length > 1) {
-                idRightAutomatic.model = servo_ids_model;
-                idRightAutomatic.incrementCurrentIndex();
-                idRightAutomatic.enabled = true;
-            } else {
-                idRightAutomatic.enabled = false;
-            }
-            idsAutomatic.visible = true;
+        function onServo_ids_changed(servoIDs) {
+            BootloaderJS.setServoIDs(servoIDs);
         }
-        function onFirmware_installation_progress_changed(progress) {
-            progressDialogBar.value = progress;
-            progressDialogBar.indeterminate = progress < 100 ? false : true;
+        function onFirmware_left_installation_progress_changed(progress) {
+            progressLeftDialogBar.value = progress;
+            progressLeftDialogBar.indeterminate = progress < 100 ? false : true;
+        }
+        function onFirmware_right_installation_progress_changed(progress) {
+            progressRightDialogBar.value = progress;
+            progressRightDialogBar.indeterminate = progress < 100 ? false : true;
         }
         function onFirmware_installation_complete_triggered() {
-            progressDialogBar.indeterminate = true;
-            progressDialogButtons.visible = true
-            progressDialogBar.visible = false
-            isInProgress.visible = false
-            progressDialog.close();
+            BootloaderJS.resetDialog()
         }
         function onError_triggered(error_message) {
-            progressDialogBar.indeterminate = true;
-            progressDialogButtons.visible = true
-            progressDialogBar.visible = false
-            isInProgress.visible = false
-            progressDialog.close();
+            // Error message handled in main.qml
+            BootloaderJS.resetDialog()
+        }
+        function onFirmware_installation_started(drives) {
+            BootloaderJS.showInstallationProgress(drives)
         }
     }
 
@@ -98,15 +76,50 @@ ColumnLayout {
                 Layout.fillHeight: true
             }
             Components.SpacerH {}
-            ProgressBar {
-                id: progressDialogBar
+            RowLayout {
+                id: progressLeftDialog
                 visible: false
-                from: 0
-                to: 100
-                value: 0
-                indeterminate: true
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                Label {
+                    text: "Left drive:"
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: 1
+                }
+                Components.SpacerW {}
+                ProgressBar {
+                    id: progressLeftDialogBar
+                    from: 0
+                    to: 100
+                    value: 0
+                    indeterminate: true
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 4
+                }
+            }
+            Components.SpacerH {}
+            RowLayout {
+                id: progressRightDialog
+                visible: false
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Label {
+                    text: "Right drive:"
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: 1
+                }
+                Components.SpacerW {}
+                ProgressBar {
+                    id: progressRightDialogBar
+                    from: 0
+                    to: 100
+                    value: 0
+                    indeterminate: true
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 4
+                }
             }
         }
 
@@ -123,9 +136,6 @@ ColumnLayout {
             
             onApplied: () => {
                 bootloaderPage.bootloaderController.install_firmware();
-                progressDialogButtons.visible = false
-                progressDialogBar.visible = true
-                isInProgress.visible = true
             }
         }
     }
